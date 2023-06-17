@@ -1,0 +1,17 @@
+{
+  "name": "scraper-js-demo",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@extractus/article-extractor": "^7.2.16",
+    "html-to-text": "^9.0.5",
+    "pdf-parse": "^1.1.1",
+    "puppeteer": "^20.7.2"
+  }
+}
