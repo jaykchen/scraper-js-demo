@@ -15,6 +15,7 @@ app.get('/', async (req, res) => {
     let articleExtractorText = null;
     try {
         articleExtractorText = await extractArticle(url);
+        // console.log(articleExtractorText.content);
     } catch (err) {
         console.error("Error in extractArticle: ", err.message);
     }
@@ -53,8 +54,17 @@ async function extractArticle(url) {
 async function chromeExtract(url) {
     const browser = await puppeteer.launch({
         headless: true,
+        // userDataDir: '/Users/jaykchen/Library/Application Support/Google/Chrome/Default',
+        // userDataDir: '/Users/jaykchen/Library/Application Support/Google/Chrome Beta/Default',
+        userDataDir: '/Users/jaykchen/Library/Application Support/Google/Chrome Beta/',
+        args: ['--no-sandbox', '--disable-setuid-sandbox',
+            '--profile-directory=/Users/jaykchen/Library/Application Support/Google/Chrome Beta/Profile 1'],
+        // args: ['--no-sandbox', '--disable-setuid-sandbox',
+        //     '--profile-directory=/Users/jaykchen/Library/Application Support/Google/Chrome Beta/Profile 1'],
+        // userDataDir: '/Users/jaykchen/Library/Application Support/Google/Chrome/jaykchen@gmail.com',
         defaultViewport: { width: 820, height: 1180 },
-        executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+        executablePath: '/Applications/Google Chrome Beta.app/Contents/MacOS/Google Chrome Beta',
+        // executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
     });
     const page = await browser.newPage();
 
@@ -73,14 +83,14 @@ async function chromeExtract(url) {
 
         await page.waitForSelector('body', { timeout: 5000 });
         const textContent = await page.evaluate(() => document.body.innerText);
-
+        console.log(textContent);
         return textContent;
 
     } catch (e) {
         console.error(e.toString());
         return "";
     } finally {
-        await page.close();
-        await browser.close();
+        // await page.close();
+        // await browser.close();
     }
 }
