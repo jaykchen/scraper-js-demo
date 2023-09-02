@@ -44,7 +44,27 @@ app.get('/', async (req, res) => {
                 page.click('.btn-primary'), // Clicking the link will indirectly cause a navigation
             ]);
             pageHTML = await fetchPageHTML(url, page);
-            textContent = await page.evaluate(() => document.body.innerText);
+
+            const dom = new JSDOM(pageHTML);
+            const codeLinesDiv = dom.window.document.querySelector('.react-code-lines');
+
+            if (codeLinesDiv) {
+                const codeLines = Array.from(codeLinesDiv.querySelectorAll('[data-code-text]'))
+                    .map(span => span.getAttribute('data-code-text'))
+                    .join('');
+                console.log(codeLines);
+            } else {
+                console.log('Cannot find the code lines wrapper');
+            }
+
+            // textContent = await page.evaluate(() => document.body.innerText);
+            // textContent = await page.evaluate(() => {
+            //     let codeLines = Array.from(document.querySelectorAll('span[data-code-text]'));
+            //     return codeLines.map(line => line.getAttribute('data-code-text')).join(' ');
+            // });
+
+            // console.log(textContent);
+
         } catch (err) {
             console.error('Login failed:', err);
         }
@@ -53,19 +73,12 @@ app.get('/', async (req, res) => {
     let articleExtractorText = null;
     try {
         const dom = new JSDOM(pageHTML);
-        articleExtractorText = await extractArticle(url, dom.window.document);
+
     } catch (err) {
         console.error("Error in extractArticle: ", err.message);
     }
 
-    if (articleExtractorText && articleExtractorText.content.length > 100 &&
-        textContent && articleExtractorText.content.length < textContent.length) {
-        return res.status(200).send(articleExtractorText.content);
-    } else if (textContent) {
-        return res.status(200).send(textContent);
-    } else {
-        return res.status(500).send('Both extractors failed.');
-    }
+
 });
 
 app.listen(port, () => {
