@@ -46,37 +46,20 @@ app.get('/', async (req, res) => {
             pageHTML = await fetchPageHTML(url, page);
 
             const dom = new JSDOM(pageHTML);
-            const codeLinesDiv = dom.window.document.querySelector('.react-code-lines');
-
-            if (codeLinesDiv) {
-                const codeLines = Array.from(codeLinesDiv.querySelectorAll('[data-code-text]'))
-                    .map(span => span.getAttribute('data-code-text'))
-                    .join('');
-                console.log(codeLines);
-            } else {
-                console.log('Cannot find the code lines wrapper');
-            }
-
-            // textContent = await page.evaluate(() => document.body.innerText);
+            getCodeText(dom);
+            getAboutText(dom);
+            textContent = await page.evaluate(() => document.body.innerText);
             // textContent = await page.evaluate(() => {
             //     let codeLines = Array.from(document.querySelectorAll('span[data-code-text]'));
             //     return codeLines.map(line => line.getAttribute('data-code-text')).join(' ');
             // });
 
-            // console.log(textContent);
 
         } catch (err) {
             console.error('Login failed:', err);
         }
     }
 
-    let articleExtractorText = null;
-    try {
-        const dom = new JSDOM(pageHTML);
-
-    } catch (err) {
-        console.error("Error in extractArticle: ", err.message);
-    }
 
 
 });
@@ -85,13 +68,31 @@ app.listen(port, () => {
     console.log(`App listening at http://localhost:${port}`)
 });
 
-async function extractArticle(url, doc) {
-    try {
-        const data = await extractFromHtml(doc, url);
-        return data;
-    } catch (err) {
-        console.error(err.message);
-        return "";
+function getCodeText(dom) {
+    const codeLinesDiv = dom.window.document.querySelector('.react-code-lines');
+    if (codeLinesDiv) {
+        const codeLines = Array.from(codeLinesDiv.querySelectorAll('[data-code-text]'))
+            .map(span => span.getAttribute('data-code-text'))
+            .join('');
+        console.log(codeLines);
+    } else {
+        console.log('Cannot find the code lines wrapper');
+    }
+}
+
+function getAboutText(dom) {
+    const aboutHeader = Array.from(dom.window.document.querySelectorAll('h2')).find(el => el.textContent === 'About');
+
+    if (aboutHeader) {
+        const aboutSectionDiv = aboutHeader.parentElement;
+        if (aboutSectionDiv) {
+            const aboutText = getCleanTextContent(aboutSectionDiv, dom);
+            console.log('inner:', aboutText);
+        } else {
+            console.log('Cannot find the About section content');
+        }
+    } else {
+        console.log('Cannot find the About section');
     }
 }
 
@@ -120,6 +121,21 @@ async function fetchPageHTML(url, page) {
         // await browser.close();
     }
 }
+
+const getCleanTextContent = (node, dom) => {
+    let text = '';
+    node.childNodes.forEach(child => {
+        if (child.nodeType === dom.window.Node.TEXT_NODE) {
+            const trimmed = child.nodeValue.trim();
+            if (trimmed.length > 0) {
+                text += ' ' + trimmed;
+            }
+        } else if (child.nodeType === dom.window.Node.ELEMENT_NODE) {
+            text += ' ' + getCleanTextContent(child, dom);
+        }
+    });
+    return text.trim();
+};
 
 
 // userDataDir: '/Users/jaykchen/Library/Application Support/Google/Chrome/Default',
